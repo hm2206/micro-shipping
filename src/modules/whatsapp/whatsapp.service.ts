@@ -1,5 +1,5 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { Client, Message, MessageMedia  } from 'whatsapp-web.js';
+import { Client, Message } from 'whatsapp-web.js';
 import * as qrCode from 'qrcode';
 import { SendMessageDto } from './whatsapp.dto';
 import { StorageManager } from '@slynova/flydrive';
@@ -31,9 +31,7 @@ export class WhatsappService {
 
   public async sendMessage({ phone, message }: SendMessageDto): Promise<Message> {
     const chatId = `${phone.replace('+', '')}@c.us`.trim();
-    const fileBase64 = await this.storage.disk().get('factura.pdf', 'base64');
-    const media = new MessageMedia('application/pdf', fileBase64.content, 'factura.pdf');
-    return await this.client.sendMessage(chatId, media)
+    return await this.client.sendMessage(chatId, message)
     .then(res => res)
     .catch(err => {
       console.log(err);
@@ -78,7 +76,7 @@ export class WhatsappService {
 
   private disconnect() {
     this.client.on('auth_failure', () => {
-      console.log('fail');
+      this.isLogged = false;
     });
     this.client.on('disconnected', () => {
       this.isLogged = false;
