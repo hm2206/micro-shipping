@@ -1,8 +1,11 @@
 import { Injectable, InternalServerErrorException } from '@nestjs/common';
-import { Client, Message } from 'whatsapp-web.js';
+import { Client, Message, MessageMedia } from 'whatsapp-web.js';
 import * as qrCode from 'qrcode';
-import { SendMessageDto } from './whatsapp.dto';
+import {  SendMessageDto, SendMessageMediaDto } from './whatsapp.dto';
 import { StorageManager } from '@slynova/flydrive';
+import { HttpService } from '@nestjs/axios';
+import ObjectId from 'bson-objectid';
+import { Observable } from 'rxjs';
 
 @Injectable()
 export class WhatsappService {
@@ -10,7 +13,9 @@ export class WhatsappService {
   private path = 'session/wsp.json';
   private isLogged: boolean;
 
-  constructor(private storage: StorageManager) {
+  constructor(
+    private httpService: HttpService,
+    private storage: StorageManager) {
     this.isLogged = false;
     this.initial();
   }
@@ -33,15 +38,35 @@ export class WhatsappService {
     const chatId = `${phone.replace('+', '')}@c.us`.trim();
     return await this.client.sendMessage(chatId, message)
     .then(res => res)
-    .catch(err => {
-      console.log(err);
+    .catch(() => {
       throw new InternalServerErrorException("No se pudó enviar el mensaje");
     })
   }
 
+  public async sendMedia({ phone, message, filename, mimeType }: SendMessageMediaDto): Promise<Observable<any>> {
+    try {
+      const result = await this.httpService.get(`${message}`, { responseType: 'arraybuffer' })
+      return new Observable(subscriber => {
+        result.subscribe(async observer => {
+            const fileBuffer = Buffer.from(new Uint8Array(observer.data));
+            const [, extname] = filename.split('.');
+            const tempFilename = `media/${new ObjectId().toHexString()}.${extname}`;
+            await this.storage.disk().put(tempFilename, fileBuffer);
+            const fileBase64 = await this.storage.disk().get(tempFilename, 'base64');
+            const media = new MessageMedia(mimeType, fileBase64.content, filename);
+            await this.storage.disk().delete(tempFilename);
+            const info = await this.sendMessage({ phone, message: media });
+            subscriber.next(info);
+            subscriber.complete();
+          });
+      });
+    } catch (error) {
+      throw new InternalServerErrorException("No se pudo enviar el mensaje multimedia");
+    }
+  }
+
   private async initial() {
     const session = await this.recoverySession();
-    console.log(session);
     this.client = new Client({ 
       session, 
       puppeteer: {

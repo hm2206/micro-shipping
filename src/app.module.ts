@@ -5,7 +5,7 @@ import { StorageConfig } from './common/configs/storage.config';
 @Module({
   imports: [
     WhatsappModule, 
-    StorageConfig
+    StorageConfig,
   ],
 })
 export class AppModule {}
