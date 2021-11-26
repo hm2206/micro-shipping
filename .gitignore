@@ -36,3 +36,7 @@ lerna-debug.log*
 
 #Custom dir
 /upload
+
+# Custom Env
+.env.local
+.env.production

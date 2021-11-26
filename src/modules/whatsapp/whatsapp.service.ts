@@ -3,9 +3,8 @@ import { Client, Message, MessageMedia } from 'whatsapp-web.js';
 import * as qrCode from 'qrcode';
 import {  SendMessageDto, SendMessageMediaDto } from './whatsapp.dto';
 import { StorageManager } from '@slynova/flydrive';
-import { HttpService } from '@nestjs/axios';
-import ObjectId from 'bson-objectid';
 import { Observable } from 'rxjs';
+import { ClientHttpService } from '../client-http/client-http.service';
 
 @Injectable()
 export class WhatsappService {
@@ -14,24 +13,29 @@ export class WhatsappService {
   private isLogged: boolean;
 
   constructor(
-    private httpService: HttpService,
+    private clientHttpService: ClientHttpService,
     private storage: StorageManager) {
     this.isLogged = false;
     this.initial();
   }
   
-  public generateQrCode(): Promise<any> {
-    if (this.isLogged) throw new InternalServerErrorException("Ya existe un usuario authenticado");
-    return new Promise((resolve, reject) => {
-      this.client.on('qr', (qr) => {
-        qrCode.toDataURL(qr, (err, url) => {
-          if (err) return reject(err);
-          const parseBase64 = `${url}`.replace('data:image/png;base64,', '');
-          const parseBinary = Buffer.from(parseBase64, 'base64');
-          return resolve(parseBinary)
+  public generateQrCode(): Observable<any> {
+    return new Observable(subscriber => {
+      try {
+        if (this.isLogged) throw new InternalServerErrorException("Ya existe un usuario authenticado");
+        this.client.on('qr', (qr) => {
+          qrCode.toDataURL(qr, (err, url) => {
+            if (err) throw new InternalServerErrorException("No se pudó generar el QR CODE");
+            const parseBase64 = `${url}`.replace('data:image/png;base64,', '');
+            const parseBinary = Buffer.from(parseBase64, 'base64');
+            subscriber.next(parseBinary);
+            subscriber.complete();
+          });
         });
-      });
-    });
+      } catch (error) {
+        subscriber.error(error);
+      }
+    })
   }
 
   public async sendMessage({ phone, message }: SendMessageDto): Promise<Message> {
@@ -44,25 +48,29 @@ export class WhatsappService {
   }
 
   public async sendMedia({ phone, message, filename, mimeType }: SendMessageMediaDto): Promise<Observable<any>> {
-    try {
-      const result = await this.httpService.get(`${message}`, { responseType: 'arraybuffer' })
-      return new Observable(subscriber => {
-        result.subscribe(async observer => {
-            const fileBuffer = Buffer.from(new Uint8Array(observer.data));
-            const [, extname] = filename.split('.');
-            const tempFilename = `media/${new ObjectId().toHexString()}.${extname}`;
-            await this.storage.disk().put(tempFilename, fileBuffer);
-            const fileBase64 = await this.storage.disk().get(tempFilename, 'base64');
-            const media = new MessageMedia(mimeType, fileBase64.content, filename);
-            await this.storage.disk().delete(tempFilename);
-            const info = await this.sendMessage({ phone, message: media });
-            subscriber.next(info);
-            subscriber.complete();
-          });
+      const result = await this.clientHttpService.download({
+        extname: 'png',
+        url: `${message}`,
+        dir: 'media'
       });
-    } catch (error) {
-      throw new InternalServerErrorException("No se pudo enviar el mensaje multimedia");
-    }
+      // observable
+      return new Observable(subscriber => {
+        result.subscribe({
+          next: async (infoFile) => {
+            try {
+              const fileBase64 = await this.storage.disk().get(infoFile.relativePath, 'base64');
+              const media = new MessageMedia(mimeType, fileBase64.content, filename);
+              await this.storage.disk().delete(infoFile.relativePath);
+              const infoMessage = await this.sendMessage({ phone, message: media });
+              subscriber.next(infoMessage);
+              subscriber.complete();
+            } catch (error) {
+              subscriber.error(error);
+            } 
+          },
+          error: (error) =>  subscriber.error(error)
+        });
+      });
   }
 
   private async initial() {

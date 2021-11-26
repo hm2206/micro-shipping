@@ -1,21 +1,30 @@
-import { Controller, Get,StreamableFile, Header, Query, Param, Res } from '@nestjs/common';
+import { Controller, Get, Header, Query, Param, Res, Post } from '@nestjs/common';
 import { Response } from 'express';
 import { CustomValidation } from 'src/common/pipes/custom-validation.pipe';
+import { ParseErrorResponse } from 'src/common/utils/parse-error-response';
 import { MessageDto, MessageMediaDto } from './whatsapp.dto';
 import { WhatsappService } from './whatsapp.service';
+import { ParseBufferToReable } from 'src/common/utils/parse-buffer-to-reable'
 
 @Controller('whatsapp')
 export class WhatsappController {
   constructor(private whatsappService: WhatsappService) {}
 
   @Get('qrCode.png')
+  @Header('Content-Type', 'image/png')
   @Header('Content-Disposition', 'inline')
-  public async authorize() {
-    const qrCode = await this.whatsappService.generateQrCode();
-    return new StreamableFile(qrCode);
+  public authorize(@Res() response: Response) {
+    const result = this.whatsappService.generateQrCode();
+    result.subscribe({
+      next: (qr: Buffer) => {
+        const stream = ParseBufferToReable.toStream(qr);
+        stream.pipe(response);
+      },
+      error: (err) => new ParseErrorResponse(err).response(response)
+    })
   }
 
-  @Get(':phoneNumber/sendMessage')
+  @Post(':phoneNumber/sendMessage')
   public async sendMessage(
     @Param('phoneNumber') phoneNumber: string,
     @Query(new CustomValidation(MessageDto)) query) {
@@ -25,7 +34,7 @@ export class WhatsappController {
     });
   } 
 
-  @Get(':phoneNumber/sendMedia')
+  @Post(':phoneNumber/sendMedia')
   public async sendMedia(
     @Param('phoneNumber') phoneNumber: string,
     @Res() response: Response,
@@ -35,9 +44,9 @@ export class WhatsappController {
       ...query
     });
     // response
-    result.subscribe(observer => {
-      response.json(observer);
+    result.subscribe({
+      next: (infoMessage) => response.json(infoMessage),
+      error: (error) => new ParseErrorResponse(error).response(response)
     });
   }
-
 }

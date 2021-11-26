@@ -9,6 +9,9 @@ async function bootstrap() {
   app.useGlobalFilters(new HttpExceptionFilter);
   app.enableCors({ origin: true });
   app.setGlobalPrefix('api');
-  await app.listen(3000);
+  const { PORT, HOST } = process.env;
+  await app.listen(PORT,HOST, () => {
+    console.log(`Listen server: ${HOST}:${PORT}`);
+  });
 }
 bootstrap();

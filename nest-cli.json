@@ -1,6 +1,10 @@
 {
   "collection": "@nestjs/schematics",
   "sourceRoot": "src",
+  "compilerOptions": {
+    "assets": ["modules/**/templates/**/*"],
+    "watchAssets": true
+  },
   "watchOptions": {
     "excludeFiles": ["upload"]
   }
