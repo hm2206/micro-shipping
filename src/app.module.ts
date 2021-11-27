@@ -9,7 +9,7 @@ import { ClientHttpModule } from './modules/client-http/client-http.module';
 @Module({
   imports: [
     ConfigModule.forRoot({
-      envFilePath: ['.env.local', 'env.production'],
+      envFilePath: ['.env.local', '.env.production'],
     }),
     StorageModule.forRoot(storageConfig),
     WhatsappModule, 
