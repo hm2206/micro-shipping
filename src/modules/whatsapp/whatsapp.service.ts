@@ -78,7 +78,7 @@ export class WhatsappService {
     this.client = new Client({ 
       session, 
       puppeteer: {
-        executablePath: 'C:/Program Files (x86)/Google/Chrome/Application/chrome.exe',
+        executablePath: process.env.WHATSAPP_BROWSER,
       },
     });
     await this.authenticate();
