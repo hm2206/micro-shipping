@@ -79,6 +79,7 @@ export class WhatsappService {
       session, 
       puppeteer: {
         executablePath: process.env.WHATSAPP_BROWSER,
+        args: ['--no-sandbox'],
       },
     });
     await this.authenticate();
