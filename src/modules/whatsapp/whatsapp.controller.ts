@@ -24,7 +24,7 @@ export class WhatsappController {
     })
   }
 
-  @Post(':phoneNumber/sendMessage')
+  @Post(':phoneNumber/send')
   public async sendMessage(
     @Param('phoneNumber') phoneNumber: string,
     @Query(new CustomValidation(MessageDto)) query) {
@@ -34,7 +34,7 @@ export class WhatsappController {
     });
   } 
 
-  @Post(':phoneNumber/sendMedia')
+  @Post(':phoneNumber/media')
   public async sendMedia(
     @Param('phoneNumber') phoneNumber: string,
     @Res() response: Response,

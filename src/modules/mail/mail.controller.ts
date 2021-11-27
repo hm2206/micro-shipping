@@ -10,7 +10,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 export class MailController {
   constructor(private mailService: MailService) {}
 
-  @Post(':to/sendMail')
+  @Post(':to/send')
   @UseInterceptors(FileInterceptor('file'))
   public sendMail(@Param('to') to,
   @Res() response: Response,
