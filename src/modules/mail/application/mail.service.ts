@@ -19,6 +19,8 @@ export class MailService {
           context: {
             subject: payload.subject,
             content: payload.content,
+            displayLink: payload.displayLink || payload.link || '',
+            link: payload.link || ''
           }
         })
         .then(infoMail => {

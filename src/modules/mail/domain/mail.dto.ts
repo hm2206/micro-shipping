@@ -11,6 +11,14 @@ export class SendMailDto {
 
   @IsString()
   @IsOptional()
+  public displayLink = '';
+
+  @IsString()
+  @IsOptional()
+  public link = '';
+
+  @IsString()
+  @IsOptional()
   public content: string;
 
   @IsOptional()
