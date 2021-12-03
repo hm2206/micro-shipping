@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { MailerService } from '@nestjs-modules/mailer';
-import { SendMailDto } from './mail.dto';
+import { SendMailDto } from '../domain/mail.dto';
 import { Observable } from 'rxjs';
 import { Attachment } from 'nodemailer/lib/mailer';
 

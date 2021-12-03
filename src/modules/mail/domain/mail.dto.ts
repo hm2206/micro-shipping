@@ -1,4 +1,5 @@
-import { IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { PartialType } from '@nestjs/mapped-types';
 
 export class SendMailDto {
   @IsNotEmpty()
@@ -14,6 +15,12 @@ export class SendMailDto {
 
   @IsOptional()
   public file: Express.Multer.File;
+}
+
+export class SendMailToDto extends PartialType(SendMailDto) {
+  @IsEmail()
+  @IsNotEmpty()
+  public email: string;
 }
 
 export class InputAttachments {

@@ -1,8 +1,9 @@
 import { Module } from '@nestjs/common';
-import { MailService } from './mail.service';
-import { MailController } from './mail.controller';
+import { MailService } from './application/mail.service';
+import { HttpController } from './infrastructure/http.controller';
 import { ClientHttpModule } from '../client-http/client-http.module';
-import { MailConfig } from './mail.config';
+import { MailConfig } from './application/mail.config';
+import { RabbitMqController } from './infrastructure/rabbitmq.controller';
 
 @Module({
   imports: [
@@ -11,6 +12,6 @@ import { MailConfig } from './mail.config';
   ],
   providers: [MailService],
   exports: [MailService],
-  controllers: [MailController],
+  controllers: [HttpController, RabbitMqController],
 })
 export class MailModule {}

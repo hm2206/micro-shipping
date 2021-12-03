@@ -16,7 +16,7 @@ export const MailConfig = MailerModule.forRootAsync({
       from: process.env.STMP_FROM,
     },
     template: {
-      dir: resolve(__dirname, './templates'),
+      dir: resolve(__dirname, '../templates'),
       adapter: new HandlebarsAdapter(),
       options: {
         strict: true,

@@ -1,13 +1,13 @@
 import { Body, Controller, Param, Post, Res, UploadedFile, UseInterceptors } from '@nestjs/common';
-import { MailService } from './mail.service';
-import { SendMailDto } from './mail.dto';
+import { MailService } from '../application/mail.service';
+import { SendMailDto } from '../domain/mail.dto';
 import { CustomValidation } from 'src/common/pipes/custom-validation.pipe';
 import { Response, Express } from 'express';
 import { ParseErrorResponse } from 'src/common/utils/parse-error-response';
 import { FileInterceptor } from '@nestjs/platform-express';
 
 @Controller('mail')
-export class MailController {
+export class HttpController {
   constructor(private mailService: MailService) {}
 
   @Post(':to/send')
