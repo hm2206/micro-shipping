@@ -4,7 +4,6 @@ import { storageConfig } from './common/configs/storage.config';
 import { StorageModule } from '@haorama/nestjs-storage';
 import { MailModule } from './modules/mail/mail.module';
 import { ConfigModule } from '@nestjs/config';
-import { MicroserviceConfig } from './common/configs/microservice.config';
 import { ClientHttpModule } from './modules/client-http/client-http.module';
 
 @Module({
@@ -15,7 +14,6 @@ import { ClientHttpModule } from './modules/client-http/client-http.module';
     StorageModule.forRoot(storageConfig),
     WhatsappModule, 
     MailModule, 
-    MicroserviceConfig,
     ClientHttpModule,
   ],
 })
