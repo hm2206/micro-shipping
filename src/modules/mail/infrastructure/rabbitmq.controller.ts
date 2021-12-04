@@ -1,5 +1,5 @@
 import { Controller, Inject, UsePipes, ValidationPipe } from '@nestjs/common';
-import { EventPattern, Payload, Ctx, RmqContext, ClientProxy } from '@nestjs/microservices';
+import { EventPattern, Payload, Ctx, RmqContext, ClientRMQ } from '@nestjs/microservices';
 import { Observable } from 'rxjs';
 import { MailService } from '../application/mail.service';
 import { SendMailDto, SendMailToDto } from '../domain/mail.dto';
@@ -10,7 +10,7 @@ export class RabbitMqController {
   constructor(private mailService: MailService) {}
 
   @Inject(microserviceConfigName.SHIPPING_SERVICE)
-  private readonly client: ClientProxy;
+  private readonly client: ClientRMQ;
 
   public static count = 0;
 
