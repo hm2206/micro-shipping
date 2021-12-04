@@ -1,12 +1,16 @@
-import { Controller, UsePipes, ValidationPipe } from '@nestjs/common';
-import { MessagePattern, Payload, Ctx, RmqContext } from '@nestjs/microservices';
+import { Controller, Inject, UsePipes, ValidationPipe } from '@nestjs/common';
+import { MessagePattern, Payload, Ctx, RmqContext, ClientProxy } from '@nestjs/microservices';
 import { Observable } from 'rxjs';
 import { MailService } from '../application/mail.service';
 import { SendMailDto, SendMailToDto } from '../domain/mail.dto';
+import { microserviceConfigName } from '../../../common/configs/microservice.config';
 
 @Controller()
 export class RabbitMqController {
-  constructor(private mailService: MailService) {}
+  constructor(
+    @Inject(microserviceConfigName.PLANILLA_SERVICE)
+    private client: ClientProxy,
+    private mailService: MailService) {}
 
   public static count = 0;
 
@@ -25,6 +29,11 @@ export class RabbitMqController {
         clearTimeout(currentTimer);
       }, 5000);
     }
+    // enviar evento
+    const sendMailProcess = () => {
+      this.client.send('sendMailProcess', payload.objectId)
+      .subscribe();
+    }
     // programar envio
     return new Observable(subscriber => {
       const controlTime = setTimeout(() => {
@@ -33,6 +42,8 @@ export class RabbitMqController {
           next: (data) => {
             subscriber.next(data);
             resetTimeout(controlTime);
+            // enviar email procesado
+            sendMailProcess
           },
           error: (err) => {
             subscriber.error(err);
