@@ -9,7 +9,7 @@ import { microserviceConfigName } from '../../../common/configs/microservice.con
 export class RabbitMqController {
   constructor(private mailService: MailService) {}
 
-  @Inject(microserviceConfigName.SHIPPING_PROCESS_SERVICE)
+  @Inject(microserviceConfigName.SHIPPING_SERVICE)
   private readonly client: ClientRMQ;
 
   public static count = 0;
@@ -36,7 +36,7 @@ export class RabbitMqController {
         .subscribe({
           next: (data) => {
             subscriber.next(data);
-            this.client.emit('sendMailPlanilla', payload.objectId);
+            this.client.emit('sendMailProcess', payload.objectId);
             resetTimeout(controlTime);
           },
           error: (err) => {
