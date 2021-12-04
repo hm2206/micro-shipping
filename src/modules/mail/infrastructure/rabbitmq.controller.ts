@@ -10,7 +10,6 @@ export class RabbitMqController {
 
   public static count = 0;
 
-  @UsePipes(new ValidationPipe({ transform: true }))
   @MessagePattern('sendMail')
   public sendMail(@Payload() data: SendMailToDto, @Ctx() context: RmqContext): Observable<any> {
     RabbitMqController.count += 1;
