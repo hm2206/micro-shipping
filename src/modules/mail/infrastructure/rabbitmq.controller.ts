@@ -31,10 +31,12 @@ export class RabbitMqController {
         this.mailService.sendMail(data.email, data as SendMailDto)
         .subscribe({
           next: (data) => {
+            console.log(data);
             subscriber.next(data);
             resetTimeout(controlTime);
           },
           error: (err) => {
+            console.log(err.message)
             subscriber.error(err);
             resetTimeout(controlTime);
           }
