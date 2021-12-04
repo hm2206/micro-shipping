@@ -1,5 +1,5 @@
 import { Controller, Inject, UsePipes, ValidationPipe } from '@nestjs/common';
-import { EventPattern, Payload, Ctx, RmqContext, ClientRMQ } from '@nestjs/microservices';
+import { MessagePattern, Payload, Ctx, RmqContext, ClientRMQ } from '@nestjs/microservices';
 import { Observable } from 'rxjs';
 import { MailService } from '../application/mail.service';
 import { SendMailDto, SendMailToDto } from '../domain/mail.dto';
@@ -15,7 +15,7 @@ export class RabbitMqController {
   public static count = 0;
 
   @UsePipes(new ValidationPipe({ transform: true }))
-  @EventPattern('sendMail')
+  @MessagePattern('sendMail')
   public sendMail(@Payload() payload: SendMailToDto, @Ctx() context: RmqContext): Observable<any> {
     RabbitMqController.count += 1;
     const channel = context.getChannelRef();
@@ -36,7 +36,7 @@ export class RabbitMqController {
         .subscribe({
           next: (data) => {
             subscriber.next(data);
-            this.client.emit('sendMailProcess', payload.objectId);
+            this.client.send('sendMailProcess', payload.objectId);
             resetTimeout(controlTime);
           },
           error: (err) => {
