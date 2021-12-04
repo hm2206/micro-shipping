@@ -1,5 +1,5 @@
 import { Controller, UsePipes, ValidationPipe } from '@nestjs/common';
-import { MessagePattern, Payload, Ctx, RmqContext } from '@nestjs/microservices';
+import { EventPattern, Payload, Ctx, RmqContext, ClientProxy } from '@nestjs/microservices';
 import { Observable } from 'rxjs';
 import { MailService } from '../application/mail.service';
 import { SendMailDto, SendMailToDto } from '../domain/mail.dto';
@@ -8,11 +8,13 @@ import { SendMailDto, SendMailToDto } from '../domain/mail.dto';
 export class RabbitMqController {
   constructor(private mailService: MailService) {}
 
+  private readonly client: ClientProxy;
+
   public static count = 0;
 
   @UsePipes(new ValidationPipe({ transform: true }))
-  @MessagePattern('sendMail')
-  public sendMail(@Payload() data: SendMailToDto, @Ctx() context: RmqContext): Observable<any> {
+  @EventPattern('sendMail')
+  public sendMail(@Payload() payload: SendMailToDto, @Ctx() context: RmqContext): Observable<any> {
     RabbitMqController.count += 1;
     const channel = context.getChannelRef();
     const originalMsg = context.getMessage();
@@ -28,15 +30,14 @@ export class RabbitMqController {
     // programar envio
     return new Observable(subscriber => {
       const controlTime = setTimeout(() => {
-        this.mailService.sendMail(data.email, data as SendMailDto)
+        this.mailService.sendMail(payload.email, payload as SendMailDto)
         .subscribe({
           next: (data) => {
-            console.log('enviado');
             subscriber.next(data);
+            this.client.emit('sendMailProcess', payload.objectId);
             resetTimeout(controlTime);
           },
           error: (err) => {
-            console.log('no se pudo enviar')
             subscriber.error(err);
             resetTimeout(controlTime);
           }

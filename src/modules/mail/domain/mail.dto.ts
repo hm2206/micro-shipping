@@ -29,6 +29,9 @@ export class SendMailToDto extends PartialType(SendMailDto) {
   @IsEmail()
   @IsNotEmpty()
   public email: string;
+
+  @IsOptional()
+  public objectId?: any;
 }
 
 export class InputAttachments {
