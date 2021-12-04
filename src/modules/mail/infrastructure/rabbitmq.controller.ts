@@ -9,7 +9,7 @@ import { microserviceConfigName } from '../../../common/configs/microservice.con
 export class RabbitMqController {
   constructor(private mailService: MailService) {}
 
-  @Inject(microserviceConfigName.SHIPPING_SERVICE)
+  @Inject(microserviceConfigName.PLANILLA_SERVICE)
   private readonly client: ClientRMQ;
 
   public static count = 0;
