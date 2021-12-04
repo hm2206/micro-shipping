@@ -13,7 +13,7 @@ export const MicroserviceConfig = ClientsModule.registerAsync([
         transport: Transport.RMQ,
         options: {
           urls: [`amqp://${RABBITMQ_USER}:${RABBITMQ_PASS}@${RABBITMQ_HOST}:${RABBITMQ_PORT}/${RABBITMQ_VIRTUAL}`],
-          queue: 'shipping.process'
+          queue: 'shipping-process'
         }
       }
     }
