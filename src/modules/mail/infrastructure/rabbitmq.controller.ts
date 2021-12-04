@@ -10,6 +10,7 @@ export class RabbitMqController {
 
   public static count = 0;
 
+  @UsePipes(new ValidationPipe({ transform: true }))
   @MessagePattern('sendMail')
   public sendMail(@Payload() data: SendMailToDto, @Ctx() context: RmqContext): Observable<any> {
     RabbitMqController.count += 1;
@@ -27,20 +28,19 @@ export class RabbitMqController {
     // programar envio
     return new Observable(subscriber => {
       const controlTime = setTimeout(() => {
-        // this.mailService.sendMail(data.email, data as SendMailDto)
-        // .subscribe({
-        //   next: (data) => {
-        //     console.log(data);
-        //     subscriber.next(data);
-        //     resetTimeout(controlTime);
-        //   },
-        //   error: (err) => {
-        //     console.log(err.message)
-        //     subscriber.error(err);
-        //     resetTimeout(controlTime);
-        //   }
-        // });
-        console.log(data.email, data);
+        this.mailService.sendMail(data.email, data as SendMailDto)
+        .subscribe({
+          next: (data) => {
+            console.log('enviado');
+            subscriber.next(data);
+            resetTimeout(controlTime);
+          },
+          error: (err) => {
+            console.log('no se pudo enviar')
+            subscriber.error(err);
+            resetTimeout(controlTime);
+          }
+        });
       }, interval);
     })
   }
