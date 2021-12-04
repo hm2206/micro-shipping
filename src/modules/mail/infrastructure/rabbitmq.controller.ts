@@ -43,7 +43,7 @@ export class RabbitMqController {
             subscriber.next(data);
             resetTimeout(controlTime);
             // enviar email procesado
-            sendMailProcess
+            sendMailProcess();
           },
           error: (err) => {
             subscriber.error(err);
